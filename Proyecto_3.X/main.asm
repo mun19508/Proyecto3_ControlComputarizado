@@ -11,6 +11,10 @@ PR_VAR		    UDATA
 ;------------------------------------Generales-------------------------------------------		    
 ANTIREB	    RES 1			;Boton
 CONT1		    RES 1			;Delay
+;-----------------------------------Operaciones------------------------------------------
+CT1		    RES 1			;Ciclo de Trabajo 1, para ajustar el valor que va al TMR0.
+ROTF		    RES 1			;Para la funcion de ajuste.
+CICLO		    RES 1
 ;--------------------------------------ADC-----------------------------------------------		    
 SERVO0	    RES 1
 SERVO1		    RES 1
@@ -32,8 +36,11 @@ SAVE:					;Sirve para guardar el valor actual de:
     MOVWF	TEMP_STATUS		;& STATUS
 ISR:
     BTFSS	PIR1, ADIF
+    GOTO		ADC_INT
+    BTFSS	INTCON,T0IF
+    GOTO		TMR0_INT
     GOTO		LOAD
-ADC:    
+ADC_INT:    
     BCF		PIR1, ADIF
     MOVF		CONT_ADC, W
     ADDWF	PCL, F
@@ -59,7 +66,26 @@ SERVO2_ADC:
     MOVWF	SERVO2
     INCF		CONT_ADC, F
     BCF		ADCON0, 3
-    GOTO		INICIAR_CONV			
+    GOTO		INICIAR_CONV
+TMR0_INT:
+    BCF		INTCON,T0IF
+    MOVF		CICLO,W
+    ADDWF	PCL,F
+    GOTO		POSITIVO
+    GOTO		NEGATIVO
+    CLRF		CICLO
+POSITIVO:
+    BSF		PORTC, RC3
+    CLRF		TMR0
+    MOVF		CT1,W
+    SUBWF	TMR0,F
+    INCF		CICLO,F
+    GOTO		LOAD
+NEGATIVO:
+    BCF		PORTC, RC3
+    CLRF		TMR0
+    INCF		CICLO, F
+    GOTO		LOAD
 INICIAR_CONV:
     NOP
     NOP
@@ -87,16 +113,32 @@ START
     MOVLW	.255
     MOVWF	TRISA			;Puerto A como entrada.
     CLRF		TRISC			;Salida: Señales PMW. 
+;----------------------------Configuración Timers----------------------------------------
+    MOVLW	.255			;TMR2:
+    MOVWF	PR2			;Aprox 4.09 ms.
+    BCF		OPTION_REG, T0CS	;TMR0: Oscilador interno
+    BCF		OPTION_REG, PSA	;Prescaler a TMR0
+    BCF		OPTION_REG, PS2	
+    BSF		OPTION_REG, PS1	
+    BSF		OPTION_REG, PS0	;Prescaler de 1:16
+;----------------------------Configuración Interrupciones--------------------------------
+    BSF		INTCON, GIE		;Se habilitaron la interrupciones globales,
+    BSF		INTCON, PEIE		;perifericas,
+    BSF		INTCON, T0IE 		;del TRM0.
+;-------------------------------------ADC----------------------------------------------- 
+   BSF		PIE1, ADIE		;y la interrupciones por el A/D.
     BCF		ADCON1, ADFM		;Justificado a la izquierda.
     BCF		ADCON1, VCFG1		;Ref: VSS.
     BCF		ADCON1, VCFG0		;Ref: VDD.
-    BSF		INTCON, GIE		;Se habilitaron la interrupciones globales,
-    BSF		INTCON, PEIE		;perifericas,
-    BSF		PIE1, ADIE		;y la interrupciones por el A/D.
     BCF		STATUS, 5		;-------------------Banco 0------------------
    MOVLW	B'01000001'		;Fosc/8, ANS0 & conversion activada.
    MOVWF	ADCON0
-   BCF		PIR1, ADIF		;Se apaga la bandera del A/D.
+    BCF		PIR1, ADIF		;Se apaga la bandera del A/D.
+;-----------------------------------Timers pt2-------------------------------------------
+    BCF		PIR1, TMR2IF		;Se apaga la bandera de TMR2.
+    BSF		T2CON, TMR2ON	;Timer 2 encendido
+    BSF		T2CON, 1		;prescaler de 16	
+;-------------------------------Limpiar variables/puertos--------------------------------
    CLRF		PORTA			;Se limpian los puertos.
    CLRF		PORTC
    CLRF		TEMP_STATUS	
@@ -104,14 +146,29 @@ START
    CLRF		SERVO0
    CLRF		SERVO1
    CLRF		SERVO2
+   CLRF		CT1
    CLRF		CONT_ADC
    CLRF		ANTIREB
    CLRF		CONT1
    BSF		ADCON0, GO
 LOOP: 
-	
+    MOVF		SERVO0, W
+    MOVWF	CCPR1L
+    MOVF		SERVO1, W
+    MOVWF	CCPR2L
+    MOVF		SERVO2, W
+    CALL		AJUSTE_CT
+    MOVWF	CT1
     GOTO		LOOP
 ;--------------------------------------RUTINAS-----------------------------------------
+AJUSTE_CT
+    MOVWF	ROTF			;Se recupera el valor en W
+    BCF		STATUS, 0		;Se asegura que carry este en 0.
+    RRF		ROTF, W		;Se procede a rotar a la derecha para emular la division
+					;ahora el valor esta entre 0 - 127.
+    ADDLW	.97			;Se adiciona 97 para que el tiempo en el TRM0, este
+					;entre 0.512ms < t < 2.544ms. 
+    RETURN
 DELAY_4US				;DELAY DE  4us (supuestamente)
     BCF		STATUS,5
     BCF		STATUS,6

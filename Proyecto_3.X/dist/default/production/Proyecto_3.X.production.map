@@ -1,16 +1,16 @@
 MPLINK 5.08, LINKER
-Linker Map File - Created Thu Nov 19 08:15:48 2020
+Linker Map File - Created Thu Nov 26 03:05:10 2020
 
                                  Section Info
                   Section       Type    Address   Location Size(Bytes)
                 ---------  ---------  ---------  ---------  ---------
                  RES_VECT       code   0x000000    program   0x000002
                    .cinit    romdata   0x000001    program   0x000004
-                 ISR_VECT       code   0x000004    program   0x000050
-                MAIN_PROG       code   0x00002c    program   0x00004e
+                 ISR_VECT       code   0x000004    program   0x000076
+                MAIN_PROG       code   0x00003f    program   0x00007e
 .config_2007_BUILD/DEFAULT/PRODUCTION/MAIN.O       code   0x002007    program   0x000002
 .config_2008_BUILD/DEFAULT/PRODUCTION/MAIN.O       code   0x002008    program   0x000002
-                   PR_VAR      udata   0x000020       data   0x000008
+                   PR_VAR      udata   0x000020       data   0x00000b
 
 
 
@@ -18,35 +18,42 @@ Linker Map File - Created Thu Nov 19 08:15:48 2020
                                Start         End      
                            ---------   ---------      
                             0x000000    0x000002      
-                            0x000004    0x000052      
+                            0x000004    0x00007d      
                             0x002007    0x002008      
-            84 out of 8455 program addresses used, program memory utilization is 0%
+            127 out of 8455 program addresses used, program memory utilization is 1%
 
 
 
                               Symbols - Sorted by Name
                      Name    Address   Location    Storage File                     
                 ---------  ---------  ---------  --------- ---------                
-                      ADC   0x000009    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
-                DELAY_4US   0x00004c    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
-             INICIAR_CONV   0x000020    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                  ADC_INT   0x00000c    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                AJUSTE_CT   0x000072    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                DELAY_4US   0x000077    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+             INICIAR_CONV   0x000033    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
                       ISR   0x000007    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
-                     LOAD   0x000026    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
-                     LOOP   0x00004b    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                     LOAD   0x000039    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                     LOOP   0x00006a    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                 NEGATIVO   0x00002f    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                 POSITIVO   0x000029    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
                      SAVE   0x000004    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
-               SERVO0_ADC   0x000010    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
-               SERVO1_ADC   0x000015    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
-               SERVO2_ADC   0x00001b    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
-                    START   0x00002c    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
-          _MAIN_PROG_0025   0x000051    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+               SERVO0_ADC   0x000013    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+               SERVO1_ADC   0x000018    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+               SERVO2_ADC   0x00001e    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                    START   0x00003f    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                 TMR0_INT   0x000023    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+          _MAIN_PROG_003D   0x00007c    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
                   ANTIREB   0x000020       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                    CICLO   0x000024       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
                     CONT1   0x000021       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
-                 CONT_ADC   0x000025       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
-                   SERVO0   0x000022       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
-                   SERVO1   0x000023       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
-                   SERVO2   0x000024       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
-              TEMP_STATUS   0x000026       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
-                   TEMP_W   0x000027       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                 CONT_ADC   0x000028       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                      CT1   0x000022       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                     ROTF   0x000023       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                   SERVO0   0x000025       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                   SERVO1   0x000026       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                   SERVO2   0x000027       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+              TEMP_STATUS   0x000029       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                   TEMP_W   0x00002a       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
 
 
 
@@ -55,23 +62,30 @@ Linker Map File - Created Thu Nov 19 08:15:48 2020
                 ---------  ---------  ---------  --------- ---------                
                      SAVE   0x000004    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
                       ISR   0x000007    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
-                      ADC   0x000009    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
-               SERVO0_ADC   0x000010    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
-               SERVO1_ADC   0x000015    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
-               SERVO2_ADC   0x00001b    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
-             INICIAR_CONV   0x000020    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
-                     LOAD   0x000026    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
-                    START   0x00002c    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
-                     LOOP   0x00004b    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
-                DELAY_4US   0x00004c    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
-          _MAIN_PROG_0025   0x000051    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                  ADC_INT   0x00000c    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+               SERVO0_ADC   0x000013    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+               SERVO1_ADC   0x000018    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+               SERVO2_ADC   0x00001e    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                 TMR0_INT   0x000023    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                 POSITIVO   0x000029    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                 NEGATIVO   0x00002f    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+             INICIAR_CONV   0x000033    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                     LOAD   0x000039    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                    START   0x00003f    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                     LOOP   0x00006a    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                AJUSTE_CT   0x000072    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                DELAY_4US   0x000077    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+          _MAIN_PROG_003D   0x00007c    program     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
                   ANTIREB   0x000020       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
                     CONT1   0x000021       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
-                   SERVO0   0x000022       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
-                   SERVO1   0x000023       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
-                   SERVO2   0x000024       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
-                 CONT_ADC   0x000025       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
-              TEMP_STATUS   0x000026       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
-                   TEMP_W   0x000027       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                      CT1   0x000022       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                     ROTF   0x000023       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                    CICLO   0x000024       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                   SERVO0   0x000025       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                   SERVO1   0x000026       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                   SERVO2   0x000027       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                 CONT_ADC   0x000028       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+              TEMP_STATUS   0x000029       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
+                   TEMP_W   0x00002a       data     static C:\Users\Daniel\Documents\GitHub\Proyecto3_ControlComputarizado\Proyecto_3.X\main.asm
 
 
