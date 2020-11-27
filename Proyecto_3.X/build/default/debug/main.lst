@@ -1,4 +1,4 @@
-MPASM 5.77                          MAIN.ASM   11-27-2020  0:10:03         PAGE  1
+MPASM 5.77                          MAIN.ASM   11-27-2020  0:19:47         PAGE  1
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -17,11 +17,11 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00810         LIST
                       00002 
                       00003 ; CONFIG1
-                      00004 ; __config 0xE0D4
+                      00004 ; __config 0x20D4
 2007   20D4           00005  __CONFIG _CONFIG1, _FOSC_INTRC_NOCLKOUT & _WDTE_OFF & _PWRTE_OFF & _MCLRE_OFF & _CP_OFF & _CPD_OFF & _B
                             OREN_OFF & _IESO_OFF & _FCMEN_OFF & _LVP_OFF
                       00006 ; CONFIG2
-                      00007 ; __config 0xFFFF
+                      00007 ; __config 0x3FFF
 2008   3FFF           00008  __CONFIG _CONFIG2, _BOR4V_BOR40V & _WRT_OFF
                       00009 
                       00010 PR_VAR              UDATA
@@ -57,7 +57,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0007                  00037 ISR:
 0007   1D0B           00038     BTFSS       INTCON,T0IF
 0008   2???           00039      GOTO       ADC_INT
-MPASM 5.77                          MAIN.ASM   11-27-2020  0:10:03         PAGE  2
+MPASM 5.77                          MAIN.ASM   11-27-2020  0:19:47         PAGE  2
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -116,7 +116,7 @@ Warning[207]: Found label after column 1. (TMR0_INT)
 002D   119F           00089     BCF         ADCON0, 3
 002E   111F           00090     BCF         ADCON0, 2               ;Canal 0
 002F   2???           00091     GOTO                INICIAR_CONV
-MPASM 5.77                          MAIN.ASM   11-27-2020  0:10:03         PAGE  3
+MPASM 5.77                          MAIN.ASM   11-27-2020  0:19:47         PAGE  3
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -175,7 +175,7 @@ Message[302]: Register in operand not in bank 0.  Ensure that bank bits are corr
                       00131 ;     BSF               TXSTA, TXEN                       ;Bit de transmicion activo. 
                       00132 ;     BCF               TXSTA, SYNC                       ;Modo Asincronico.
                       00133 ;     BSF               TXSTA, BRGH                       ;Modo de alta velocidad.
-MPASM 5.77                          MAIN.ASM   11-27-2020  0:10:03         PAGE  4
+MPASM 5.77                          MAIN.ASM   11-27-2020  0:19:47         PAGE  4
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -234,7 +234,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0034   08??           00184     MOVF                ROTF, W
 0035   00??           00185     MOVWF       CT1
                       00186  
-MPASM 5.77                          MAIN.ASM   11-27-2020  0:10:03         PAGE  5
+MPASM 5.77                          MAIN.ASM   11-27-2020  0:19:47         PAGE  5
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -260,7 +260,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0042   2???           00204     GOTO                $-1 
 0043   0008           00205    RETURN    
 20D4 3FFF             00206     END
-MPASM 5.77                          MAIN.ASM   11-27-2020  0:10:03         PAGE  6
+MPASM 5.77                          MAIN.ASM   11-27-2020  0:19:47         PAGE  6
 
 
 SYMBOL TABLE
@@ -319,7 +319,7 @@ BRG3                              00000003
 BRG4                              00000004
 BRG5                              00000005
 BRG6                              00000006
-MPASM 5.77                          MAIN.ASM   11-27-2020  0:10:03         PAGE  7
+MPASM 5.77                          MAIN.ASM   11-27-2020  0:19:47         PAGE  7
 
 
 SYMBOL TABLE
@@ -378,7 +378,7 @@ CCPR2                             0000001B
 CCPR2H                            0000001C
 CCPR2L                            0000001B
 CHS0                              00000002
-MPASM 5.77                          MAIN.ASM   11-27-2020  0:10:03         PAGE  8
+MPASM 5.77                          MAIN.ASM   11-27-2020  0:19:47         PAGE  8
 
 
 SYMBOL TABLE
@@ -437,7 +437,7 @@ I2C_DATA                          00000005
 I2C_READ                          00000002
 I2C_START                         00000003
 I2C_STOP                          00000004
-MPASM 5.77                          MAIN.ASM   11-27-2020  0:10:03         PAGE  9
+MPASM 5.77                          MAIN.ASM   11-27-2020  0:19:47         PAGE  9
 
 
 SYMBOL TABLE
@@ -496,7 +496,7 @@ OERR                              00000001
 OPTION_REG                        00000081
 OSCCON                            0000008F
 OSCTUNE                           00000090
-MPASM 5.77                          MAIN.ASM   11-27-2020  0:10:03         PAGE 10
+MPASM 5.77                          MAIN.ASM   11-27-2020  0:19:47         PAGE 10
 
 
 SYMBOL TABLE
@@ -555,7 +555,7 @@ RA6                               00000006
 RA7                               00000007
 RB0                               00000000
 RB1                               00000001
-MPASM 5.77                          MAIN.ASM   11-27-2020  0:10:03         PAGE 11
+MPASM 5.77                          MAIN.ASM   11-27-2020  0:19:47         PAGE 11
 
 
 SYMBOL TABLE
@@ -614,7 +614,7 @@ SBOREN                            00000004
 SCKP                              00000004
 SCS                               00000000
 SEN                               00000000
-MPASM 5.77                          MAIN.ASM   11-27-2020  0:10:03         PAGE 12
+MPASM 5.77                          MAIN.ASM   11-27-2020  0:19:47         PAGE 12
 
 
 SYMBOL TABLE
@@ -673,7 +673,7 @@ T1OSCEN                           00000003
 T1SYNC                            00000002
 T2CKPS0                           00000000
 T2CKPS1                           00000001
-MPASM 5.77                          MAIN.ASM   11-27-2020  0:10:03         PAGE 13
+MPASM 5.77                          MAIN.ASM   11-27-2020  0:19:47         PAGE 13
 
 
 SYMBOL TABLE
@@ -732,7 +732,7 @@ TRISC7                            00000007
 TRISD                             00000088
 TRISD0                            00000000
 TRISD1                            00000001
-MPASM 5.77                          MAIN.ASM   11-27-2020  0:10:03         PAGE 14
+MPASM 5.77                          MAIN.ASM   11-27-2020  0:19:47         PAGE 14
 
 
 SYMBOL TABLE
@@ -791,7 +791,7 @@ WPUB0                             00000000
 WPUB1                             00000001
 WPUB2                             00000002
 WPUB3                             00000003
-MPASM 5.77                          MAIN.ASM   11-27-2020  0:10:03         PAGE 15
+MPASM 5.77                          MAIN.ASM   11-27-2020  0:19:47         PAGE 15
 
 
 SYMBOL TABLE
@@ -850,7 +850,7 @@ _IDLOC3                           00002003
 _IESO_OFF                         00003BFF
 _IESO_ON                          00003FFF
 _INTOSC                           00003FFD
-MPASM 5.77                          MAIN.ASM   11-27-2020  0:10:03         PAGE 16
+MPASM 5.77                          MAIN.ASM   11-27-2020  0:19:47         PAGE 16
 
 
 SYMBOL TABLE
@@ -877,6 +877,8 @@ _WRT_HALF                         000039FF
 _WRT_OFF                          00003FFF
 _XT_OSC                           00003FF9
 __16F887                          00000001
+__DEBUG                           
+__MPLAB_DEBUGGER_SIMULATOR        1
 
 Errors   :     0
 Warnings :     1 reported,     0 suppressed
