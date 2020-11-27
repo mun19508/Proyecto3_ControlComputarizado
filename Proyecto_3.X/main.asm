@@ -14,13 +14,14 @@ VARS UDATA
 ;------------------------------- Generales ----------------------------------------------
 MODO              RES 1	     ;Reservada para indicar el estado que mueve los servos
 CONT1              RES 1	    ;Para los delays
+ANTIREB        RES 1
  ;----------------------------- USO DEL ADC --------------------------------------------
 SERVO0           RES 1
 SERVO1            RES 1
 SERVO2           RES 1	    ;Usadas para recuperar el valor del canal del ADC. 
 ADC_CONT     RES 1	    ;Representa el canal que se esta leyendo.
 ;------------------------------Envio de datos---------------------------------------------
-;------ADC------  
+;------ADC----------  
 PULSO0			RES 1	  
 PULSO1			RES 1
 PULSO2			RES 1
@@ -42,6 +43,28 @@ TX_CENTENAS_S1	RES 1
 TX_UNIDADES_S2	RES 1
 TX_DECENAS_S2	RES 1
 TX_CENTENAS_S2	RES 1
+;-----------------------------------Recepcion de datos-----------------------------------
+;---CONVERSION---
+CIFRA_CENTENA	RES 1
+CIFRA_DECENA		RES 1
+CIFRA_UNIDAD	RES 1
+;-----Generales------  
+CONT_RECP		RES 1	
+VALOR_BCD		RES 1		
+SERVO_V		RES 1		
+SERVO_BIN		RES 1		
+;-----Servo 0-------  
+RX_CENTENAS_S0	RES 1
+RX_DECENAS_S0	RES 1
+RX_UNIDADES_S0	RES 1	  	
+;-----Servo 1-------        
+RX_CENTENAS_S1	RES 1
+RX_DECENAS_S1	RES 1
+RX_UNIDADES_S1	RES 1
+;-----Servo 2-------     
+RX_CENTENAS_S2	RES 1
+RX_DECENAS_S2	RES 1
+RX_UNIDADES_S2	RES 1
  ;-------------------------- Control de PWM generado por el timer-----------------------
 ROTF		RES 1	    ;Variable que ajusta el valor del ADC apartir de rotacion de bits
 DUTY_CYCLE	 RES 1	    ;Establece el valor del tiempo activo del pulso.
@@ -65,7 +88,7 @@ SAVE:
 
 TMR0_INT:
     BTFSS	INTCON,T0IF
-    GOTO		ADC_INT
+    GOTO		RX_INT
     
     BCF		INTCON,T0IF
     MOVF		CICLO,W
@@ -80,14 +103,102 @@ TIEMPO_ACTIVO
     CLRF		TMR0
     SUBWF	TMR0,F		    
     INCF		CICLO,F		    ;La siguiente entrada se ejecuta el TIEMPO_INACTIVO
-    GOTO		ADC_INT
+    GOTO		RX_INT
       
 TIEMPO_INACTIVO
     BCF		PORTC,RC0
     CLRF		TMR0		  ;En la siguiente interrupcion se ejecuta nuevamente TIEMPO_ACTIVO
     INCF		CICLO,F  
+
+RX_INT:
+     BTFSS	PIR1, RCIF
+    GOTO		ADC_INT
     
-ADC_INT
+     MOVF	RCREG,W
+    MOVWF	VALOR_BCD
+    
+    MOVF		SERVO_V, W
+    SUBLW	.255		;Se comprueba si el valor anterior fue para seleccion de  
+    BTFSC	STATUS, Z	;servo o no 
+    GOTO		SERVO_SELECT	;se selecciona el servo
+    
+    INCF		VALOR_BCD, F
+    MOVF		SERVO_V,W
+    ADDWF	PCL,F 
+    GOTO		STORE_S0
+    GOTO		STORE_S1
+    GOTO		STORE_S2
+STORE_S0
+    MOVF		VALOR_BCD,W 
+    MOVLW	RX_CENTENAS_S0
+    ADDWF	CONT_RECP, W 
+    MOVWF	FSR 
+    MOVLW	.48 
+    SUBWF	VALOR_BCD,W
+    MOVWF	INDF 
+    INCF		CONT_RECP,F ;
+    GOTO		FIN
+STORE_S1
+     MOVF	VALOR_BCD,W 
+    MOVLW	RX_CENTENAS_S1
+    ADDWF	CONT_RECP, W 
+    MOVWF	FSR 
+    MOVLW	.48
+    SUBWF	VALOR_BCD,W
+    MOVWF	INDF 
+    INCF		CONT_RECP,F ;
+    GOTO		FIN
+STORE_S2
+     MOVF	VALOR_BCD,W 
+    MOVLW	RX_CENTENAS_S2
+    ADDWF	CONT_RECP, W 
+    MOVWF	FSR 
+    MOVLW	.48 
+    SUBWF	VALOR_BCD,W
+    MOVWF	INDF 
+    INCF		CONT_RECP,F ;
+FIN 
+    MOVF		CONT_RECP,W
+    SUBLW	 .2
+    BTFSS	STATUS,Z  ;SI CONTADOR_RC ES 3 NTONCES SE SALTA LA INSTRUCCION
+    GOTO		ADC_INT
+    MOVLW	.255
+    CLRF		CONT_RECP
+    MOVWF	SERVO_V ;SE ACABA LA INSTRUCCION A LA ESPERA DE UNA NUEVA
+    GOTO		ADC_INT
+    ;------------------------------------------------------------------------------------------------
+SERVO_SELECT
+    MOVF		VALOR_BCD,W
+    SUBLW	.73		;Se verifica si el valor es I
+    BTFSS	STATUS, Z	;Si no lo es se aplica el siguiente criterio
+    GOTO		SERVO1_S
+    MOVLW	.0 
+    MOVWF	SERVO_V	
+    GOTO		ADC_INT
+    
+SERVO1_S
+    MOVF		VALOR_BCD,W
+    SUBLW	.68		;Se verifica si es D
+    BTFSS	STATUS,Z
+    GOTO		SERVO2_S
+    MOVLW	.1 
+    MOVWF	SERVO_V
+    GOTO		ADC_INT 
+    ;------------------------------------------------------------
+SERVO2_S
+    MOVF		VALOR_BCD,W
+    SUBLW	.67		;Se verifica si es C
+    BTFSS	STATUS,Z
+    GOTO		NO_VALIDO
+    MOVLW	.2
+    MOVWF	SERVO_V
+    GOTO		ADC_INT
+    ;--------------------------------------------------------------
+NO_VALIDO
+    MOVLW	.255
+    MOVWF	SERVO_V 
+    
+ADC_INT:
     BTFSS	PIR1, ADIF 
     GOTO		LOAD		    ;Si no se encuentra activada se sale de la interrupcion
     
@@ -213,6 +324,7 @@ START
     MOVLW	.255
     MOVWF	TRISA
     CLRF		TRISC     
+    CLRF		TRISD
   ;---------------------------INTERRUPCIONES ----------------------------------------
     BSF		INTCON,GIE 
     BSF		INTCON, PEIE     
@@ -247,14 +359,21 @@ START
     
     MOVLW	B'01000001'		;ADC con FOSC/8,  canal 0 
     MOVWF	ADCON0		;& ADC encendido.
-    
+    CLRF		MODO
     CLRF		SERVO0
     CLRF		SERVO1
     CLRF		SERVO2
     CLRF		ADC_CONT
     CLRF		CONT_ENVIO
     CLRF		 CICLO
-   CLRF		VALOR_B		   
+   CLRF		VALOR_B	
+   CLRF		CIFRA_CENTENA	
+    CLRF		CIFRA_DECENA	
+    CLRF		CIFRA_UNIDAD
+   CLRF		CONT_RECP
+    CLRF		VALOR_BCD
+    CLRF		SERVO_V
+    CLRF		SERVO_BIN
    CLRF		UNIDADES_TX		  
    CLRF		DECENAS_TX		
    CLRF		CENTENAS_TX		
@@ -267,31 +386,77 @@ START
    CLRF		TX_UNIDADES_S2	
    CLRF		TX_DECENAS_S2	
    CLRF		TX_CENTENAS_S2	
-     
+   CLRF		RX_CENTENAS_S0	
+    CLRF		RX_DECENAS_S0	
+    CLRF		RX_UNIDADES_S0
+   CLRF		RX_CENTENAS_S1	
+    CLRF		RX_DECENAS_S1	
+    CLRF		RX_UNIDADES_S1
+   CLRF		RX_CENTENAS_S2	
+    CLRF		RX_DECENAS_S2	
+    CLRF		RX_UNIDADES_S2
 
     BSF		ADCON0, GO			;Comienza conversion
     
 LOOP:
+    MOVF		PORTA,W
+    MOVWF	ANTIREB
+    BTFSS	ANTIREB, 3
+    GOTO		ESTADO_ACTUAL
+    CALL		DELAY
+    BTFSC	 PORTA,3
+    GOTO		$-1
+ESTADO_ACTUAL:   
+    BTFSS	MODO, 1
+    GOTO		MANUAL
+    GOTO		COMPUTADORA
+COMPUTADORA:    
+    BSF		MODO,1
+    BSF		PORTD, 1
+    BCF		PORTD, 0
+    MOVLW	RX_CENTENAS_S0
+    MOVWF	FSR
+    CALL		CONV_BIN
+    MOVF		SERVO_BIN,W
+    MOVWF	PULSO0
+    
+    MOVLW	RX_CENTENAS_S1
+    MOVWF	FSR
+    CALL		CONV_BIN
+    MOVF		SERVO_BIN,W
+    MOVWF	PULSO1
+    
+    MOVLW	RX_CENTENAS_S2
+    MOVWF	FSR
+    CALL		CONV_BIN
+    MOVF		SERVO_BIN,W
+    MOVWF	PULSO2
+    
+    GOTO		MUESTRA_ENVIO
+MANUAL:
+    BCF		MODO, 1
+    BSF		PORTD, 0
+    BCF		PORTD, 1
     MOVF		SERVO0,W
     MOVWF	PULSO0
     MOVF		SERVO1,W
     MOVWF	PULSO1
     MOVF		SERVO2,W
     MOVWF	PULSO2
-    
-    MOVLW	SERVO0
+MUESTRA_ENVIO:    
+    MOVLW	PULSO0
     MOVWF	FSR			
      CALL		AJUSTE_DC
     MOVF		ROTF,W
     MOVWF	CCPR1L
     
-    MOVLW	SERVO1
+    MOVLW	PULSO1
     MOVWF	FSR
     CALL		AJUSTE_DC
     MOVF		ROTF, W
     MOVWF	CCPR2L
     
-    MOVLW	SERVO2
+    MOVLW	PULSO2
     MOVWF	FSR
     CALL		AJUSTE_DC
     MOVF		ROTF,W
@@ -316,6 +481,45 @@ LOOP:
     CALL		ENVIAR
     GOTO		LOOP       
 ;------------------------------Sub Rutinas-----------------------------------------------   
+CONV_BIN
+    MOVF		INDF, W
+    MOVWF	CIFRA_CENTENA
+    INCF		FSR,F
+    MOVF    	INDF,W
+    MOVWF	CIFRA_DECENA
+    INCF		FSR,F
+    MOVF    	INDF,W
+    MOVWF	CIFRA_UNIDAD
+    
+    CLRF		SERVO_BIN
+    
+CONV_CENTENAS
+    MOVLW	.100
+    DECFSZ	CIFRA_CENTENA,F
+    GOTO		SUMAR_CENTENAS
+    GOTO		CONV_DECENAS
+SUMAR_CENTENAS
+    ADDWF	SERVO_BIN, F
+    GOTO		CONV_CENTENAS
+
+CONV_DECENAS
+    MOVLW	.10
+    DECFSZ	CIFRA_DECENA,F
+    GOTO		SUMAR_DECENAS
+    GOTO		CONV_UNIDADES
+SUMAR_DECENAS
+    ADDWF	SERVO_BIN, F
+    GOTO		CONV_DECENAS
+
+CONV_UNIDADES
+    MOVLW	.1
+    DECFSZ	CIFRA_UNIDAD,F
+    GOTO		SUMAR_UNIDADES
+    RETURN
+SUMAR_UNIDADES
+    ADDWF	SERVO_BIN, F
+    GOTO		CONV_UNIDADES
+  
 CONV_BCD
     CLRF		UNIDADES_TX		;se obtienen los valores de las centenas,
    CLRF		DECENAS_TX		;decenas y unidades independientemente
@@ -365,4 +569,10 @@ AJUSTE_DC:
 			    ;un ancho de pulso de entre0.496 mS y 2.512 ms 		
    MOVWF    ROTF
    RETURN
+DELAY:
+    MOVLW   .200
+    MOVWF   CONT1
+    DECFSZ   CONT1,F
+    GOTO    $-1
+    RETURN   
    END
