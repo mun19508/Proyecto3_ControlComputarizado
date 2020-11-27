@@ -1,4 +1,4 @@
-MPASM 5.77                          MAIN.ASM   11-27-2020  4:21:27         PAGE  1
+MPASM 5.77                          MAIN.ASM   11-27-2020  7:06:51         PAGE  1
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -28,229 +28,423 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00011 
                       00012  
                       00013 VARS UDATA
-                      00014  ;----------------------------- USO DEL ADC --------------------------------------------
-0000                  00015 SERVO0           RES 1
-0001                  00016 SERVO1            RES 1
-0002                  00017 SERVO2           RES 1      ;Usadas para recuperar el valor del canal del ADC. 
-0003                  00018 ADC_CONT     RES 1          ;Representa el canal que se esta leyendo.
-                      00019  ;------------------------------- Generales ----------------------------------------------
-0004                  00020 MODO              RES 1      ;Reservada para indicar el estado que mueve los servos
-0005                  00021 CONT1              RES 1            ;Para los delays
-                      00022  ;-------------------------- Control de PWM generado por el timer-----------------------
-0006                  00023 ROTF            RES 1       ;Variable que ajusta el valor del ADC apartir de rotacion de bits
-0007                  00024 DUTY_CYCLE       RES 1      ;Establece el valor del tiempo activo del pulso.
-0008                  00025 CICLO            RES 1      ;Lleva control del parte del periodo actual 
-                      00026  ;-----------------------------Interrupcion-----------------------------------------------
-0009                  00027 TEMP_W  RES 1
-000A                  00028 TEMP_STATUS     RES 1
-000B                  00029 TEMP_FSR        RES 1 
-                      00030  
-                      00031 RES_VECT  CODE    0x0000                 ; processor reset vector
-0000   2???           00032     GOTO    START                        ; go to beginning of program
-                      00033 
-                      00034 INT_VECT    CODE 0x0004
-                      00035     
-0004                  00036 SAVE:
-0004   00??           00037     MOVWF       TEMP_W 
-0005   0E03           00038     SWAPF       STATUS,W
-0006   00??           00039     MOVWF              TEMP_STATUS
-0007   0E04           00040     SWAPF       FSR,W
-0008   00??           00041     MOVWF       TEMP_FSR
-                      00042 
-MPASM 5.77                          MAIN.ASM   11-27-2020  4:21:27         PAGE  2
+                      00014 ;------------------------------- Generales ----------------------------------------------
+0000                  00015 MODO              RES 1      ;Reservada para indicar el estado que mueve los servos
+0001                  00016 CONT1              RES 1            ;Para los delays
+                      00017  ;----------------------------- USO DEL ADC --------------------------------------------
+0002                  00018 SERVO0           RES 1
+0003                  00019 SERVO1            RES 1
+0004                  00020 SERVO2           RES 1      ;Usadas para recuperar el valor del canal del ADC. 
+0005                  00021 ADC_CONT     RES 1          ;Representa el canal que se esta leyendo.
+                      00022 ;------------------------------Envio de datos---------------------------------------------
+                      00023 ;------ADC------  
+0006                  00024 PULSO0                  RES 1     
+0007                  00025 PULSO1                  RES 1
+0008                  00026 PULSO2                  RES 1
+                      00027 ;-----Generales------  
+0009                  00028 CONT_ENVIO              RES 1
+000A                  00029 VALOR_B         RES 1     
+000B                  00030 UNIDADES_TX             RES 1     
+000C                  00031 DECENAS_TX              RES 1
+000D                  00032 CENTENAS_TX             RES 1
+                      00033 ;-----Servo 0-------  
+000E                  00034 TX_UNIDADES_S0  RES 1     ;Se separan en bloques para aprovechar direccionamiento indirecto
+000F                  00035 TX_DECENAS_S0   RES 1
+0010                  00036 TX_CENTENAS_S0  RES 1
+                      00037 ;-----Servo 1-------     
+0011                  00038 TX_UNIDADES_S1  RES 1   
+0012                  00039 TX_DECENAS_S1   RES 1
+0013                  00040 TX_CENTENAS_S1  RES 1
+                      00041 ;-----Servo 2-------     
+0014                  00042 TX_UNIDADES_S2  RES 1
+MPASM 5.77                          MAIN.ASM   11-27-2020  7:06:51         PAGE  2
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-0009                  00043 TMR0_INT:
-0009   1D0B           00044     BTFSS       INTCON,T0IF
-000A   2???           00045     GOTO                ADC_INT
-                      00046     
-000B   110B           00047     BCF         INTCON,T0IF
-000C   08??           00048     MOVF                CICLO,W
-000D   0782           00049     ADDWF       PCL, F
-000E   2???           00050     GOTO                TIEMPO_ACTIVO 
-000F   2???           00051     GOTO                TIEMPO_INACTIVO
-0010   01??           00052     CLRF                CICLO
-                      00053 
-0011                  00054 TIEMPO_ACTIVO
-0011   1407           00055     BSF         PORTC, RC0                 ;Se mantiene encendido el RC0 el tiempo definido 
-0012   08??           00056     MOVF                DUTY_CYCLE,W          ;Por esta variable. 
-0013   0181           00057     CLRF                TMR0
-0014   0281           00058     SUBWF       TMR0,F              
-0015   0A??           00059     INCF                CICLO,F             ;La siguiente entrada se ejecuta el TIEMPO_INACTIVO
-0016   2???           00060     GOTO                ADC_INT
-                      00061       
-0017                  00062 TIEMPO_INACTIVO
-0017   1007           00063     BCF         PORTC,RC0
-0018   0181           00064     CLRF                TMR0              ;En la siguiente interrupcion se ejecuta nuevamente TIEMPO_ACT
+0015                  00043 TX_DECENAS_S2   RES 1
+0016                  00044 TX_CENTENAS_S2  RES 1
+                      00045  ;-------------------------- Control de PWM generado por el timer-----------------------
+0017                  00046 ROTF            RES 1       ;Variable que ajusta el valor del ADC apartir de rotacion de bits
+0018                  00047 DUTY_CYCLE       RES 1      ;Establece el valor del tiempo activo del pulso.
+0019                  00048 CICLO            RES 1      ;Lleva control del parte del periodo actual 
+                      00049  ;-----------------------------Interrupcion-----------------------------------------------
+001A                  00050 TEMP_W  RES 1
+001B                  00051 TEMP_STATUS     RES 1
+001C                  00052 TEMP_FSR        RES 1 
+                      00053  
+                      00054 RES_VECT  CODE    0x0000                 ; processor reset vector
+0000   2???           00055     GOTO    START                        ; go to beginning of program
+                      00056 
+                      00057 INT_VECT    CODE 0x0004
+                      00058     
+0004                  00059 SAVE:
+0004   00??           00060     MOVWF       TEMP_W 
+0005   0E03           00061     SWAPF       STATUS,W
+0006   00??           00062     MOVWF              TEMP_STATUS
+0007   0E04           00063     SWAPF       FSR,W
+0008   00??           00064     MOVWF       TEMP_FSR
+                      00065 
+0009                  00066 TMR0_INT:
+0009   1D0B           00067     BTFSS       INTCON,T0IF
+000A   2???           00068     GOTO                ADC_INT
+                      00069     
+000B   110B           00070     BCF         INTCON,T0IF
+000C   08??           00071     MOVF                CICLO,W
+000D   0782           00072     ADDWF       PCL, F
+000E   2???           00073     GOTO                TIEMPO_ACTIVO 
+000F   2???           00074     GOTO                TIEMPO_INACTIVO
+0010   01??           00075     CLRF                CICLO
+                      00076 
+0011                  00077 TIEMPO_ACTIVO
+0011   1407           00078     BSF         PORTC, RC0                 ;Se mantiene encendido el RC0 el tiempo definido 
+0012   08??           00079     MOVF                DUTY_CYCLE,W          ;Por esta variable. 
+0013   0181           00080     CLRF                TMR0
+0014   0281           00081     SUBWF       TMR0,F              
+0015   0A??           00082     INCF                CICLO,F             ;La siguiente entrada se ejecuta el TIEMPO_INACTIVO
+0016   2???           00083     GOTO                ADC_INT
+                      00084       
+0017                  00085 TIEMPO_INACTIVO
+0017   1007           00086     BCF         PORTC,RC0
+0018   0181           00087     CLRF                TMR0              ;En la siguiente interrupcion se ejecuta nuevamente TIEMPO_ACT
                             IVO
-0019   0A??           00065     INCF                CICLO,F  
-                      00066     
-001A                  00067 ADC_INT
-001A   1F0C           00068     BTFSS       PIR1, ADIF 
-001B   2???           00069     GOTO                LOAD                ;Si no se encuentra activada se sale de la interrupcion
-                      00070     
-001C   130C           00071     BCF         PIR1, ADIF
-001D   08??           00072     MOVF                ADC_CONT,W
-001E   0782           00073     ADDWF       PCL,F   
-001F   2???           00074     GOTO                LEC_ADC0
-0020   2???           00075     GOTO                LEC_ADC1
-0021   2???           00076     GOTO                LEC_ADC2
-0022   01??           00077     CLRF                ADC_CONT
-                      00078     
-0023                  00079 LEC_ADC0
-0023   081E           00080     MOVF                ADRESH, W
-0024   00??           00081     MOVWF       SERVO0
-0025   119F           00082     BCF         ADCON0,CHS1
-0026   151F           00083     BSF         ADCON0,CHS0             ;Se selecciona el canal 1
-0027   2???           00084     GOTO                INICIAR_CONV
-                      00085     
-0028                  00086 LEC_ADC1
-0028   081E           00087     MOVF                ADRESH, W
-0029   00??           00088     MOVWF       SERVO1
-002A   159F           00089     BSF         ADCON0,CHS1
-002B   111F           00090     BCF         ADCON0,CHS0             ;Se selecciona el canal 2
-002C   2???           00091     GOTO                INICIAR_CONV
-                      00092    
-002D                  00093 LEC_ADC2
-002D   081E           00094     MOVF                ADRESH,W
-MPASM 5.77                          MAIN.ASM   11-27-2020  4:21:27         PAGE  3
+0019   0A??           00088     INCF                CICLO,F  
+                      00089     
+001A                  00090 ADC_INT
+001A   1F0C           00091     BTFSS       PIR1, ADIF 
+001B   2???           00092     GOTO                LOAD                ;Si no se encuentra activada se sale de la interrupcion
+                      00093     
+001C   130C           00094     BCF         PIR1, ADIF
+MPASM 5.77                          MAIN.ASM   11-27-2020  7:06:51         PAGE  3
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-002E   00??           00095     MOVWF       SERVO2
-002F   119F           00096     BCF         ADCON0,CHS1
-0030   111F           00097     BCF         ADCON0,CHS0             ;Se selecciona el canal 0               
-                      00098     
-0031                  00099 INICIAR_CONV
-0031   0A??           00100     INCF                ADC_CONT,F
-0032   149F           00101     BSF         ADCON0,GO               ;Inicia la conversion 
-                      00102     
-0033                  00103 LOAD:
-0033   0E??           00104     SWAPF       TEMP_STATUS,W
-0034   0083           00105     MOVWF       STATUS
-0035   0E??           00106     SWAPF       TEMP_FSR,W
-0036   0084           00107     MOVWF       FSR
-0037   0E??           00108     SWAPF       TEMP_W,F
-0038   0E??           00109     SWAPF       TEMP_W,W
-0039   0009           00110     RETFIE
-                      00111     
-                      00112 MAIN_PROG CODE           ; let linker place main program
-                      00113  
-0000                  00114 START
-0000   1383           00115     BCF         STATUS, IRP             ;Banco 0 & 1 en el direccionamiento 
-0001   1703           00116     BSF         STATUS, RP1
-0002   1683           00117     BSF         STATUS, RP0             ;-----------------Banco 3--------------------
-                      00118     
-0003   3007           00119     MOVLW       B'00000111'
-Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0004   0088           00120     MOVWF       ANSEL
-Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0005   0189           00121     CLRF                ANSELH 
-                      00122     
-Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0006   1281           00123     BCF         OPTION_REG, T0CS    ;Fuente de reloj FOSC/4
-Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0007   1181           00124     BCF         OPTION_REG, PSA       ;Prescaler asignado al TMR0
-Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0008   1101           00125     BCF         OPTION_REG, PS2
-Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0009   1481           00126     BSF         OPTION_REG,PS1
-Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-000A   1401           00127     BSF         OPTION_REG,PS0       ;PRESCALER DE 1:16 
-                      00128     
-000B   1303           00129     BCF         STATUS,RP1              ;--------------------BANCO 1---------------
-000C   30FF           00130     MOVLW       .255
-Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-000D   0085           00131     MOVWF       TRISA
-Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-000E   0187           00132     CLRF                TRISC     
-                      00133     
-                      00134     ;------------- INTERRUPCIONES -------------------------------------------------
-000F   178B           00135     BSF         INTCON,GIE 
-0010   170B           00136     BSF         INTCON, PEIE
-                      00137       
-Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-MPASM 5.77                          MAIN.ASM   11-27-2020  4:21:27         PAGE  4
+001D   08??           00095     MOVF                ADC_CONT,W
+001E   0782           00096     ADDWF       PCL,F   
+001F   2???           00097     GOTO                LEC_ADC0
+0020   2???           00098     GOTO                LEC_ADC1
+0021   2???           00099     GOTO                LEC_ADC2
+0022   01??           00100     CLRF                ADC_CONT
+                      00101     
+0023                  00102 LEC_ADC0
+0023   081E           00103     MOVF                ADRESH, W
+0024   00??           00104     MOVWF       SERVO0
+0025   119F           00105     BCF         ADCON0,CHS1
+0026   151F           00106     BSF         ADCON0,CHS0             ;Se selecciona el canal 1
+0027   2???           00107     GOTO                INICIAR_CONV
+                      00108     
+0028                  00109 LEC_ADC1
+0028   081E           00110     MOVF                ADRESH, W
+0029   00??           00111     MOVWF       SERVO1
+002A   159F           00112     BSF         ADCON0,CHS1
+002B   111F           00113     BCF         ADCON0,CHS0             ;Se selecciona el canal 2
+002C   2???           00114     GOTO                INICIAR_CONV
+                      00115    
+002D                  00116 LEC_ADC2
+002D   081E           00117     MOVF                ADRESH,W
+002E   00??           00118     MOVWF       SERVO2
+002F   119F           00119     BCF         ADCON0,CHS1
+0030   111F           00120     BCF         ADCON0,CHS0             ;Se selecciona el canal 0               
+                      00121     
+0031                  00122 INICIAR_CONV
+0031   0A??           00123     INCF                ADC_CONT,F
+0032   149F           00124     BSF         ADCON0,GO               ;Inicia la conversion 
+                      00125     
+0033                  00126 LOAD:
+0033   0E??           00127     SWAPF       TEMP_STATUS,W
+0034   0083           00128     MOVWF       STATUS
+0035   0E??           00129     SWAPF       TEMP_FSR,W
+0036   0084           00130     MOVWF       FSR
+0037   0E??           00131     SWAPF       TEMP_W,F
+0038   0E??           00132     SWAPF       TEMP_W,W
+0039   0009           00133     RETFIE
+                      00134     
+003A                  00135 ENVIAR:
+003A   1E0C           00136     BTFSS   PIR1,TXIF               ;Se verifica si no esta ocupado RETURN
+003B   0008           00137     RETURN
+                      00138    
+                      00139     ;--------------------------Se selecciona que dato enviar -------------------------------
+003C   08??           00140     MOVF                CONT_ENVIO,W
+003D   0782           00141    ADDWF        PCL,F
+003E   2???           00142     GOTO                CENTENA_SERVO0
+003F   2???           00143     GOTO                DECENA_SERVO0
+0040   2???           00144     GOTO                UNIDAD_SERVO0
+0041   2???           00145     GOTO                COMA
+0042   2???           00146     GOTO                CENTENA_SERVO1
+0043   2???           00147     GOTO                DECENA_SERVO1
+MPASM 5.77                          MAIN.ASM   11-27-2020  7:06:51         PAGE  4
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-0011   170C           00138     BSF         PIE1, ADIE                      ;Interrupcion del ADC 
-                      00139     ;---------------------------------------------------------------------------------------
-0012   30FF           00140     MOVLW       .255 
-Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0013   0092           00141     MOVWF       PR2                             ;Periodo de  4.09 ms aproximadamente
-Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0014   019F           00142     CLRF                ADCON1 
-                      00143     
-0015   1283           00144     BCF         STATUS,RP0                  ;-----------------Banco 0------------------
-                      00145     
-0016   110B           00146     BCF         INTCON, T0IF
-0017   0181           00147     CLRF                TMR0
-0018   168B           00148     BSF         INTCON, T0IE
-                      00149     
-0019   300C           00150     MOVLW       B'00001100' 
-001A   0097           00151     MOVWF       CCP1CON         
-001B   009D           00152     MOVWF       CCP2CON         ;Modo PWM activo  
-                      00153     
-001C   3006           00154     MOVLW       B'0000110'              ;TMR2 encendido con prescale de 1:16 
-001D   0092           00155     MOVWF       T2CON                   ;& postscaler de 1
-                      00156     
-001E   3041           00157     MOVLW       B'01000001'             ;ADC con FOSC/8,  canal 0 
-001F   009F           00158     MOVWF       ADCON0          ;& ADC encendido.
-                      00159     
-0020   01??           00160     CLRF                SERVO0
-0021   01??           00161     CLRF                SERVO1
-0022   01??           00162     CLRF                SERVO2
-0023   01??           00163     CLRF                ADC_CONT
-0024   01??           00164     CLRF                 CICLO
-                      00165     
-0025   149F           00166     BSF         ADCON0, GO                      ;Comienza conversion
-                      00167     
-0026                  00168 LOOP:
-0026   30??           00169     MOVLW       SERVO0
-0027   0084           00170     MOVWF       FSR                     
-0028   2???           00171      CALL               AJUSTE_DC
-0029   08??           00172     MOVF                ROTF,W
-002A   0095           00173     MOVWF       CCPR1L
-                      00174     
-002B   30??           00175     MOVLW       SERVO1
-002C   0084           00176     MOVWF       FSR
-002D   2???           00177     CALL                AJUSTE_DC
-002E   08??           00178     MOVF                ROTF, W
-002F   009B           00179     MOVWF       CCPR2L
-                      00180     
-0030   30??           00181     MOVLW       SERVO2
-0031   0084           00182     MOVWF       FSR
-0032   2???           00183     CALL                AJUSTE_DC
-0033   08??           00184     MOVF                ROTF,W
-0034   00??           00185     MOVWF       DUTY_CYCLE
-                      00186 
-0035   2???           00187     GOTO                LOOP       
-                      00188 ;------------------------------Sub Rutinas-----------------------------------------------   
-MPASM 5.77                          MAIN.ASM   11-27-2020  4:21:27         PAGE  5
+0044   2???           00148     GOTO                UNIDAD_SERVO1
+0045   2???           00149     GOTO                COMA
+0046   2???           00150     GOTO                CENTENA_SERVO2
+0047   2???           00151     GOTO                DECENA_SERVO2
+0048   2???           00152     GOTO                UNIDAD_SERVO2
+0049   2???           00153     GOTO                FINAL
+004A   01??           00154     CLRF                CONT_ENVIO
+                      00155 
+004B                  00156 CENTENA_SERVO0
+004B   08??           00157     MOVF                TX_CENTENAS_S0,W
+004C   2???           00158     GOTO                ENVIAR_SUMA
+004D                  00159 DECENA_SERVO0
+004D   08??           00160     MOVF                TX_DECENAS_S0,W
+004E   2???           00161     GOTO                ENVIAR_SUMA
+004F                  00162 UNIDAD_SERVO0
+004F   08??           00163     MOVF                TX_UNIDADES_S0,W
+0050   2???           00164     GOTO                ENVIAR_SUMA
+0051                  00165 CENTENA_SERVO1
+0051   08??           00166     MOVF                TX_CENTENAS_S1,W
+0052   2???           00167     GOTO                ENVIAR_SUMA
+0053                  00168 DECENA_SERVO1
+0053   08??           00169     MOVF                TX_DECENAS_S1,W
+0054   2???           00170     GOTO                ENVIAR_SUMA
+0055                  00171 UNIDAD_SERVO1
+0055   08??           00172     MOVF                TX_UNIDADES_S1,W
+0056   2???           00173     GOTO                ENVIAR_SUMA
+0057                  00174 CENTENA_SERVO2
+0057   08??           00175     MOVF                TX_CENTENAS_S2,W
+0058   2???           00176     GOTO                ENVIAR_SUMA
+0059                  00177 DECENA_SERVO2
+0059   08??           00178     MOVF                TX_DECENAS_S2,W
+005A   2???           00179     GOTO                ENVIAR_SUMA
+005B                  00180 UNIDAD_SERVO2    
+005B   08??           00181     MOVF                TX_UNIDADES_S2,W
+005C   2???           00182     GOTO                ENVIAR_SUMA
+005D                  00183 COMA
+005D   302C           00184     MOVLW       .44                                 ;En ASCII es 44 
+005E   2???           00185     GOTO                ENVIAR_PC
+005F                  00186 FINAL
+005F   300A           00187     MOVLW       .10                                 ;En ASCII es 10
+0060   2???           00188     GOTO                ENVIAR_PC
+0061                  00189 ENVIAR_SUMA
+0061   3E30           00190     ADDLW       .48                                 ;Se pasa de BCD -> ASCII
+0062                  00191 ENVIAR_PC
+0062   0099           00192     MOVWF       TXREG
+0063   0A??           00193     INCF                CONT_ENVIO, F
+0064   0008           00194     RETURN
+                      00195     
+                      00196 MAIN_PROG CODE           ; let linker place main program
+                      00197  
+0000                  00198 START
+0000   1383           00199     BCF         STATUS, IRP             ;Banco 0 & 1 en el direccionamiento 
+0001   1703           00200     BSF         STATUS, RP1
+MPASM 5.77                          MAIN.ASM   11-27-2020  7:06:51         PAGE  5
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-0036                  00189 AJUSTE_DC:
-0036   1383           00190     BCF STATUS, IRP         ;Direccionamiento apunta banco 0 Y 1
-                      00191     
-0037   1003           00192     BCF STATUS,C            ;Se asegura que que Carry tenga valor de 0
-0038   0C00           00193     RRF INDF, W     ;Se restringue el rango de 0 a 255 -> 0 a 127
-0039   3E1F           00194     ADDLW   .31             ;Se suma 31 para  que el resultado este entre 31 Y 158 los cuales son
-                      00195                             ;un ancho de pulso de entre0.496 mS y 2.512 ms              
-003A   00??           00196    MOVWF    ROTF
-003B   0008           00197    RETURN
-20D4 3FFF             00198    END
-MPASM 5.77                          MAIN.ASM   11-27-2020  4:21:27         PAGE  6
+0002   1683           00201     BSF         STATUS, RP0             ;-----------------Banco 3--------------------
+                      00202     
+0003   3007           00203     MOVLW       B'00000111'
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0004   0088           00204     MOVWF       ANSEL
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0005   0189           00205     CLRF                ANSELH 
+                      00206     
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0006   1281           00207     BCF         OPTION_REG, T0CS        ;Fuente de reloj FOSC/4
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0007   1181           00208     BCF         OPTION_REG, PSA ;Prescaler asignado al TMR0
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0008   1101           00209     BCF         OPTION_REG, PS2
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0009   1481           00210     BSF         OPTION_REG,PS1
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+000A   1401           00211     BSF         OPTION_REG,PS0  ;Prescaler de 1:16 
+000B   1303           00212      BCF                STATUS,RP1              ;--------------------BANCO 1---------------
+000C   30FF           00213     MOVLW       .255
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+000D   0085           00214     MOVWF       TRISA
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+000E   0187           00215     CLRF                TRISC     
+                      00216   ;---------------------------INTERRUPCIONES ----------------------------------------
+000F   178B           00217     BSF         INTCON,GIE 
+0010   170B           00218     BSF         INTCON, PEIE     
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0011   170C           00219     BSF         PIE1, ADIE                      ;Interrupcion del ADC 
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0012   168C           00220     BSF         PIE1, RCIE                      ;& recepcion EUSART activada.
+                      00221     ;---------------------------------------------------------------------------------------
+0013   30FF           00222     MOVLW       .255 
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0014   0092           00223     MOVWF       PR2                             ;Periodo de  4.09 ms aproximadamente
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0015   019F           00224     CLRF                ADCON1 
+                      00225 ;----------------------------------  EUSART---------------------------------------------
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0016   1318           00226      BCF                TXSTA,TX9                         ;Transmicion de 8 bits.
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0017   1698           00227      BSF                TXSTA, TXEN                       ;Bit de transmicion activo.
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0018   1218           00228      BCF                TXSTA, SYNC                       ;Modo Asincronico.
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0019   1518           00229      BSF                TXSTA, BRGH                       ;Modo de alta velocidad.
+001A   3019           00230      MOVLW      .25                               ;9615 de Baudrate
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+001B   0099           00231      MOVWF      SPBRG
+001C   1283           00232     BCF         STATUS,RP0                  ;-----------------Banco 0------------------
+001D   1798           00233     BSF         RCSTA, SPEN
+001E   1318           00234     BCF         RCSTA, RX9
+001F   1618           00235     BSF         RCSTA, CREN
+MPASM 5.77                          MAIN.ASM   11-27-2020  7:06:51         PAGE  6
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00236 ;----------------------------Interrupciones pt2-----------------------------------------    
+0020   110B           00237     BCF         INTCON, T0IF
+0021   0181           00238     CLRF                TMR0
+0022   168B           00239     BSF         INTCON, T0IE
+                      00240     
+0023   300C           00241     MOVLW       B'00001100' 
+0024   0097           00242     MOVWF       CCP1CON         
+0025   009D           00243     MOVWF       CCP2CON         ;Modo PWM activo  
+                      00244     
+0026   3006           00245     MOVLW       B'0000110'              ;TMR2 encendido con prescale de 1:16 
+0027   0092           00246     MOVWF       T2CON                   ;& postscaler de 1
+                      00247     
+0028   3041           00248     MOVLW       B'01000001'             ;ADC con FOSC/8,  canal 0 
+0029   009F           00249     MOVWF       ADCON0          ;& ADC encendido.
+                      00250     
+002A   01??           00251     CLRF                SERVO0
+002B   01??           00252     CLRF                SERVO1
+002C   01??           00253     CLRF                SERVO2
+002D   01??           00254     CLRF                ADC_CONT
+002E   01??           00255     CLRF                CONT_ENVIO
+002F   01??           00256     CLRF                 CICLO
+0030   01??           00257    CLRF         VALOR_B            
+0031   01??           00258    CLRF         UNIDADES_TX               
+0032   01??           00259    CLRF         DECENAS_TX              
+0033   01??           00260    CLRF         CENTENAS_TX             
+0034   01??           00261    CLRF         TX_UNIDADES_S0  
+0035   01??           00262    CLRF         TX_DECENAS_S0   
+0036   01??           00263    CLRF         TX_CENTENAS_S0  
+0037   01??           00264    CLRF         TX_UNIDADES_S1  
+0038   01??           00265    CLRF         TX_DECENAS_S1   
+0039   01??           00266    CLRF         TX_CENTENAS_S1  
+003A   01??           00267    CLRF         TX_UNIDADES_S2  
+003B   01??           00268    CLRF         TX_DECENAS_S2   
+003C   01??           00269    CLRF         TX_CENTENAS_S2  
+                      00270      
+                      00271 
+003D   149F           00272     BSF         ADCON0, GO                      ;Comienza conversion
+                      00273     
+003E                  00274 LOOP:
+003E   08??           00275     MOVF                SERVO0,W
+003F   00??           00276     MOVWF       PULSO0
+0040   08??           00277     MOVF                SERVO1,W
+0041   00??           00278     MOVWF       PULSO1
+0042   08??           00279     MOVF                SERVO2,W
+0043   00??           00280     MOVWF       PULSO2
+                      00281     
+0044   30??           00282     MOVLW       SERVO0
+0045   0084           00283     MOVWF       FSR                     
+0046   2???           00284      CALL               AJUSTE_DC
+0047   08??           00285     MOVF                ROTF,W
+0048   0095           00286     MOVWF       CCPR1L
+                      00287     
+0049   30??           00288     MOVLW       SERVO1
+MPASM 5.77                          MAIN.ASM   11-27-2020  7:06:51         PAGE  7
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+004A   0084           00289     MOVWF       FSR
+004B   2???           00290     CALL                AJUSTE_DC
+004C   08??           00291     MOVF                ROTF, W
+004D   009B           00292     MOVWF       CCPR2L
+                      00293     
+004E   30??           00294     MOVLW       SERVO2
+004F   0084           00295     MOVWF       FSR
+0050   2???           00296     CALL                AJUSTE_DC
+0051   08??           00297     MOVF                ROTF,W
+0052   00??           00298     MOVWF       DUTY_CYCLE
+                      00299 ;------------------------------Conversion de datos---------------------------------------
+0053   08??           00300     MOVF                PULSO0, W
+0054   00??           00301     MOVWF       VALOR_B
+0055   30??           00302     MOVLW       TX_UNIDADES_S0
+0056   0084           00303     MOVWF       FSR
+0057   2???           00304     CALL                CONV_BCD
+0058   08??           00305     MOVF                PULSO1,W
+0059   00??           00306     MOVWF       VALOR_B
+005A   30??           00307     MOVLW       TX_UNIDADES_S1
+005B   0084           00308     MOVWF       FSR
+005C   2???           00309     CALL                CONV_BCD
+005D   08??           00310     MOVF                PULSO2,W
+005E   00??           00311     MOVWF       VALOR_B
+005F   30??           00312     MOVLW       TX_UNIDADES_S2
+0060   0084           00313     MOVWF       FSR
+0061   2???           00314     CALL                CONV_BCD
+                      00315     
+0062   2???           00316     CALL                ENVIAR
+0063   2???           00317     GOTO                LOOP       
+                      00318 ;------------------------------Sub Rutinas-----------------------------------------------   
+0064                  00319 CONV_BCD
+0064   01??           00320     CLRF                UNIDADES_TX             ;se obtienen los valores de las centenas,
+0065   01??           00321    CLRF         DECENAS_TX              ;decenas y unidades independientemente
+0066   01??           00322    CLRF         CENTENAS_TX             ;del eje con el que se trabaje.
+0067                  00323 CENTENAS:
+0067   3064           00324    MOVLW        .100                    ;Se le resta un valor, en este caso .100,
+0068   02??           00325    SUBWF        VALOR_B, W              ;luego se verifica si la variable es menor al
+0069   1C03           00326    BTFSS                STATUS, C               ;valor sustraido, si es menor se procede a la
+006A   2???           00327    GOTO         DECENAS         ;siguiente posici?n caso contrario se repite el
+006B   0A??           00328    INCF         CENTENAS_TX, F  ;procedimiento antes descrito hasta que la va-
+006C   00??           00329    MOVWF        VALOR_B         ;riable tenga un valor menor al sustraido.
+006D   2???           00330    GOTO         CENTENAS
+006E                  00331 DECENAS:
+006E   300A           00332    MOVLW        .10                     ;El procedimiento descrito en Centenas, apli-
+006F   02??           00333    SUBWF        VALOR_B, W              ;ca para decenas.
+0070   1C03           00334    BTFSS                STATUS, C
+0071   2???           00335    GOTO         UNIDADES
+0072   0A??           00336    INCF         DECENAS_TX,F    
+0073   00??           00337    MOVWF        VALOR_B
+0074   2???           00338    GOTO         DECENAS
+0075                  00339 UNIDADES:
+0075   3001           00340    MOVLW        .1                      ;El procedimiento descrito en Centenas, apli-
+0076   02??           00341    SUBWF        VALOR_B, W              ;ca para unidades.
+MPASM 5.77                          MAIN.ASM   11-27-2020  7:06:51         PAGE  8
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0077   1C03           00342    BTFSS                STATUS, C
+0078   2???           00343   GOTO          GUARDAR_VALOR
+0079   0A??           00344    INCF         UNIDADES_TX,F           
+007A   00??           00345    MOVWF        VALOR_B
+007B   2???           00346    GOTO         UNIDADES
+007C                  00347 GUARDAR_VALOR:   
+007C   08??           00348     MOVF                UNIDADES_TX,W ;SE VAN RECORRIENDO LOS VALORES 
+007D   0080           00349     MOVWF       INDF
+                      00350     
+007E   0A84           00351     INCF                FSR,F
+007F   08??           00352     MOVF                DECENAS_TX,W
+0080   0080           00353     MOVWF       INDF
+                      00354     
+0081   0A84           00355     INCF                FSR,F
+0082   08??           00356     MOVF                CENTENAS_TX,W
+0083   0080           00357     MOVWF       INDF
+0084   0008           00358     RETURN  
+0085                  00359 AJUSTE_DC:
+0085   1383           00360     BCF STATUS, IRP         ;Direccionamiento apunta banco 0 Y 1
+                      00361     
+0086   1003           00362     BCF STATUS,C            ;Se asegura que que Carry tenga valor de 0
+0087   0C00           00363     RRF INDF, W     ;Se restringue el rango de 0 a 255 -> 0 a 127
+0088   3E1F           00364     ADDLW   .31             ;Se suma 31 para  que el resultado este entre 31 Y 158 los cuales son
+                      00365                             ;un ancho de pulso de entre0.496 mS y 2.512 ms              
+0089   00??           00366    MOVWF    ROTF
+008A   0008           00367    RETURN
+20D4 3FFF             00368    END
+MPASM 5.77                          MAIN.ASM   11-27-2020  7:06:51         PAGE  9
 
 
 SYMBOL TABLE
@@ -265,7 +459,7 @@ ADCON0                            0000001F
 ADCON1                            0000009F
 ADCS0                             00000006
 ADCS1                             00000007
-ADC_CONT                          00000003
+ADC_CONT                          00000005
 ADC_INT                           0000001A
 ADDEN                             00000003
 ADFM                              00000007
@@ -274,7 +468,7 @@ ADIF                              00000006
 ADON                              00000000
 ADRESH                            0000001E
 ADRESL                            0000009E
-AJUSTE_DC                         00000036
+AJUSTE_DC                         00000085
 ANS0                              00000000
 ANS1                              00000001
 ANS10                             00000002
@@ -309,7 +503,7 @@ BRG3                              00000003
 BRG4                              00000004
 BRG5                              00000005
 BRG6                              00000006
-MPASM 5.77                          MAIN.ASM   11-27-2020  4:21:27         PAGE  7
+MPASM 5.77                          MAIN.ASM   11-27-2020  7:06:51         PAGE 10
 
 
 SYMBOL TABLE
@@ -367,23 +561,31 @@ CCPR1L                            00000015
 CCPR2                             0000001B
 CCPR2H                            0000001C
 CCPR2L                            0000001B
-CHS0                              00000002
-MPASM 5.77                          MAIN.ASM   11-27-2020  4:21:27         PAGE  8
+CENTENAS                          00000067
+MPASM 5.77                          MAIN.ASM   11-27-2020  7:06:51         PAGE 11
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+CENTENAS_TX                       0000000D
+CENTENA_SERVO0                    0000004B
+CENTENA_SERVO1                    00000051
+CENTENA_SERVO2                    00000057
+CHS0                              00000002
 CHS1                              00000003
 CHS2                              00000004
 CHS3                              00000005
-CICLO                             00000008
+CICLO                             00000019
 CKE                               00000006
 CKP                               00000004
 CM1CON0                           00000107
 CM2CON0                           00000108
 CM2CON1                           00000109
-CONT1                             00000005
+COMA                              0000005D
+CONT1                             00000001
+CONT_ENVIO                        00000009
+CONV_BCD                          00000064
 CREN                              00000004
 CSRC                              00000007
 D                                 00000005
@@ -393,7 +595,12 @@ DC1B0                             00000004
 DC1B1                             00000005
 DC2B0                             00000004
 DC2B1                             00000005
-DUTY_CYCLE                        00000007
+DECENAS                           0000006E
+DECENAS_TX                        0000000C
+DECENA_SERVO0                     0000004D
+DECENA_SERVO1                     00000053
+DECENA_SERVO2                     00000059
+DUTY_CYCLE                        00000018
 D_A                               00000005
 D_NOT_A                           00000005
 ECCPAS                            0000009C
@@ -411,8 +618,18 @@ EEDATH                            0000010E
 EEIE                              00000004
 EEIF                              00000004
 EEPGD                             00000007
+ENVIAR                            0000003A
+ENVIAR_PC                         00000062
+ENVIAR_SUMA                       00000061
+MPASM 5.77                          MAIN.ASM   11-27-2020  7:06:51         PAGE 12
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 F                                 00000001
 FERR                              00000002
+FINAL                             0000005F
 FSR                               00000004
 FVREN                             00000000
 GCEN                              00000007
@@ -420,6 +637,7 @@ GIE                               00000007
 GO                                00000001
 GO_DONE                           00000001
 GO_NOT_DONE                       00000001
+GUARDAR_VALOR                     0000007C
 HTS                               00000002
 I2C_DATA                          00000005
 I2C_READ                          00000002
@@ -427,12 +645,6 @@ I2C_START                         00000003
 I2C_STOP                          00000004
 INDF                              00000000
 INICIAR_CONV                      00000031
-MPASM 5.77                          MAIN.ASM   11-27-2020  4:21:27         PAGE  9
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 INTCON                            0000000B
 INTE                              00000004
 INTEDG                            00000006
@@ -454,11 +666,11 @@ LEC_ADC0                          00000023
 LEC_ADC1                          00000028
 LEC_ADC2                          0000002D
 LOAD                              00000033
-LOOP                              00000026
+LOOP                              0000003E
 LTS                               00000001
 MC1OUT                            00000007
 MC2OUT                            00000006
-MODO                              00000004
+MODO                              00000000
 MSK                               00000093
 MSK0                              00000000
 MSK1                              00000001
@@ -468,6 +680,12 @@ MSK4                              00000004
 MSK5                              00000005
 MSK6                              00000006
 MSK7                              00000007
+MPASM 5.77                          MAIN.ASM   11-27-2020  7:06:51         PAGE 13
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 NOT_A                             00000005
 NOT_ADDRESS                       00000005
 NOT_BO                            00000000
@@ -486,12 +704,6 @@ OERR                              00000001
 OPTION_REG                        00000081
 OSCCON                            0000008F
 OSCTUNE                           00000090
-MPASM 5.77                          MAIN.ASM   11-27-2020  4:21:27         PAGE 10
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 OSFIE                             00000007
 OSFIF                             00000007
 OSTS                              00000003
@@ -527,9 +739,18 @@ PS2                               00000002
 PSA                               00000003
 PSSAC0                            00000002
 PSSAC1                            00000003
+MPASM 5.77                          MAIN.ASM   11-27-2020  7:06:51         PAGE 14
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 PSSBD0                            00000000
 PSSBD1                            00000001
 PSTRCON                           0000009D
+PULSO0                            00000006
+PULSO1                            00000007
+PULSO2                            00000008
 PULSR                             00000002
 PULSS                             00000003
 PWM1CON                           0000009B
@@ -545,12 +766,6 @@ RA7                               00000007
 RB0                               00000000
 RB1                               00000001
 RB2                               00000002
-MPASM 5.77                          MAIN.ASM   11-27-2020  4:21:27         PAGE 11
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 RB3                               00000003
 RB4                               00000004
 RB5                               00000005
@@ -583,13 +798,19 @@ RD3                               00000003
 RD4                               00000004
 RD5                               00000005
 RD6                               00000006
+MPASM 5.77                          MAIN.ASM   11-27-2020  7:06:51         PAGE 15
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 RD7                               00000007
 RE0                               00000000
 RE1                               00000001
 RE2                               00000002
 RE3                               00000003
 READ_WRITE                        00000002
-ROTF                              00000006
+ROTF                              00000017
 RP0                               00000005
 RP1                               00000006
 RSEN                              00000001
@@ -604,15 +825,9 @@ SCKP                              00000004
 SCS                               00000000
 SEN                               00000000
 SENDB                             00000003
-MPASM 5.77                          MAIN.ASM   11-27-2020  4:21:27         PAGE 12
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
-SERVO0                            00000000
-SERVO1                            00000001
-SERVO2                            00000002
+SERVO0                            00000002
+SERVO1                            00000003
+SERVO2                            00000004
 SMP                               00000007
 SPBRG                             00000099
 SPBRGH                            0000009A
@@ -642,6 +857,12 @@ STRB                              00000001
 STRC                              00000002
 STRD                              00000003
 STRSYNC                           00000004
+MPASM 5.77                          MAIN.ASM   11-27-2020  7:06:51         PAGE 16
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 SWDTEN                            00000000
 SYNC                              00000004
 T0CS                              00000005
@@ -660,15 +881,9 @@ T1SYNC                            00000002
 T2CKPS0                           00000000
 T2CKPS1                           00000001
 T2CON                             00000012
-TEMP_FSR                          0000000B
-TEMP_STATUS                       0000000A
-TEMP_W                            00000009
-MPASM 5.77                          MAIN.ASM   11-27-2020  4:21:27         PAGE 13
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
+TEMP_FSR                          0000001C
+TEMP_STATUS                       0000001B
+TEMP_W                            0000001A
 TIEMPO_ACTIVO                     00000011
 TIEMPO_INACTIVO                   00000017
 TMR0                              00000001
@@ -701,6 +916,12 @@ TRISA5                            00000005
 TRISA6                            00000006
 TRISA7                            00000007
 TRISB                             00000086
+MPASM 5.77                          MAIN.ASM   11-27-2020  7:06:51         PAGE 17
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 TRISB0                            00000000
 TRISB1                            00000001
 TRISB2                            00000002
@@ -722,12 +943,6 @@ TRISD                             00000088
 TRISD0                            00000000
 TRISD1                            00000001
 TRISD2                            00000002
-MPASM 5.77                          MAIN.ASM   11-27-2020  4:21:27         PAGE 14
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 TRISD3                            00000003
 TRISD4                            00000004
 TRISD5                            00000005
@@ -753,10 +968,31 @@ TXIE                              00000004
 TXIF                              00000004
 TXREG                             00000019
 TXSTA                             00000098
+TX_CENTENAS_S0                    00000010
+TX_CENTENAS_S1                    00000013
+TX_CENTENAS_S2                    00000016
+TX_DECENAS_S0                     0000000F
+TX_DECENAS_S1                     00000012
+TX_DECENAS_S2                     00000015
+TX_UNIDADES_S0                    0000000E
+MPASM 5.77                          MAIN.ASM   11-27-2020  7:06:51         PAGE 18
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+TX_UNIDADES_S1                    00000011
+TX_UNIDADES_S2                    00000014
 UA                                00000001
 ULPWUE                            00000005
 ULPWUIE                           00000002
 ULPWUIF                           00000002
+UNIDADES                          00000075
+UNIDADES_TX                       0000000B
+UNIDAD_SERVO0                     0000004F
+UNIDAD_SERVO1                     00000055
+UNIDAD_SERVO2                     0000005B
+VALOR_B                           0000000A
 VCFG0                             00000004
 VCFG1                             00000005
 VR0                               00000000
@@ -781,12 +1017,6 @@ WPUB1                             00000001
 WPUB2                             00000002
 WPUB3                             00000003
 WPUB4                             00000004
-MPASM 5.77                          MAIN.ASM   11-27-2020  4:21:27         PAGE 15
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 WPUB5                             00000005
 WPUB6                             00000006
 WPUB7                             00000007
@@ -804,6 +1034,12 @@ _BOREN_OFF                        00003CFF
 _BOREN_ON                         00003FFF
 _BOREN_SBODEN                     00003DFF
 _BOR_NSLEEP                       00003EFF
+MPASM 5.77                          MAIN.ASM   11-27-2020  7:06:51         PAGE 19
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 _BOR_OFF                          00003CFF
 _BOR_ON                           00003FFF
 _BOR_SBODEN                       00003DFF
@@ -840,12 +1076,6 @@ _IESO_OFF                         00003BFF
 _IESO_ON                          00003FFF
 _INTOSC                           00003FFD
 _INTOSCIO                         00003FFC
-MPASM 5.77                          MAIN.ASM   11-27-2020  4:21:27         PAGE 16
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 _INTRC_OSC_CLKOUT                 00003FFD
 _INTRC_OSC_NOCLKOUT               00003FFC
 _LP_OSC                           00003FF8
@@ -863,11 +1093,17 @@ _WRT_1FOURTH                      00003BFF
 _WRT_256                          00003DFF
 _WRT_HALF                         000039FF
 _WRT_OFF                          00003FFF
+MPASM 5.77                          MAIN.ASM   11-27-2020  7:06:51         PAGE 20
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 _XT_OSC                           00003FF9
 __16F887                          00000001
 
 Errors   :     0
 Warnings :     0 reported,     0 suppressed
-Messages :    12 reported,     0 suppressed
+Messages :    18 reported,     0 suppressed
 
 
